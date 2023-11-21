@@ -39,6 +39,7 @@ import "./Hyperlink.scss";
 import { trackEvent } from "../analytics";
 import { useAppProps, useExcalidrawAppState } from "../components/App";
 import { isEmbeddableElement } from "./typeChecks";
+import { StoreAction } from "../actions/types";
 
 const CONTAINER_WIDTH = 320;
 const SPACE_BOTTOM = 85;
@@ -346,7 +347,7 @@ export const actionLink = register({
         showHyperlinkPopup: "editor",
         openMenu: null,
       },
-      commitToHistory: true,
+      storeAction: StoreAction.CAPTURE,
     };
   },
   trackEvent: { category: "hyperlink", action: "click" },

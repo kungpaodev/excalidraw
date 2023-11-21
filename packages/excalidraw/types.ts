@@ -39,6 +39,7 @@ import type { IMAGE_MIME_TYPES, MIME_TYPES } from "./constants";
 import { ContextMenuItems } from "./components/ContextMenu";
 import { SnapLine } from "./snapping";
 import { Merge, ValueOf } from "./utility-types";
+import { IStore } from "./store";
 
 export type Point = Readonly<RoughPoint>;
 
@@ -182,7 +183,22 @@ export type InteractiveCanvasAppState = Readonly<
   }
 >;
 
-export interface AppState {
+export type ObservedAppState = ObservedStandaloneAppState &
+  ObservedElementsAppState;
+
+export type ObservedStandaloneAppState = {
+  name: AppState["name"];
+  viewBackgroundColor: AppState["viewBackgroundColor"];
+};
+
+export type ObservedElementsAppState = {
+  editingGroupId: AppState["editingGroupId"];
+  selectedElementIds: AppState["selectedElementIds"];
+  selectedGroupIds: AppState["selectedGroupIds"];
+  editingLinearElement: AppState["editingLinearElement"];
+};
+
+export type AppState = {
   contextMenu: {
     items: ContextMenuItems;
     top: number;
@@ -323,7 +339,7 @@ export interface AppState {
   userToFollow: UserToFollow | null;
   /** the clientIds of the users following the current user */
   followedBy: Set<SocketId>;
-}
+};
 
 export type UIAppState = Omit<
   AppState,
@@ -476,7 +492,7 @@ export type SceneData = {
   elements?: ImportedDataState["elements"];
   appState?: ImportedDataState["appState"];
   collaborators?: Map<SocketId, Collaborator>;
-  commitToHistory?: boolean;
+  commitToStore?: boolean;
 };
 
 export enum UserIdleState {
@@ -647,6 +663,13 @@ export type ExcalidrawImperativeAPI = {
   >["getSceneElementsIncludingDeleted"];
   history: {
     clear: InstanceType<typeof App>["resetHistory"];
+  };
+  /**
+   * @experimental this API is experimental and subject to change
+   */
+  store: {
+    clear: IStore["clear"];
+    listen: IStore["listen"];
   };
   scrollToContent: InstanceType<typeof App>["scrollToContent"];
   getSceneElements: InstanceType<typeof App>["getSceneElements"];
