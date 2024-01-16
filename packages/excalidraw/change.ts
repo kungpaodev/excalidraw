@@ -954,7 +954,7 @@ export class ElementsChange implements Change<Map<string, ExcalidrawElement>> {
 
       if (!flags.containsVisibleDifference) {
         // Strip away fractional as even if it would be different, it doesn't have to result in visible change
-        const { fractionalIndex, ...rest } = mergedPartial;
+        const { index, ...rest } = mergedPartial;
         const containsVisibleDifference =
           ElementsChange.checkForVisibleDifference(element, rest);
 
@@ -963,7 +963,7 @@ export class ElementsChange implements Change<Map<string, ExcalidrawElement>> {
 
       if (!flags.containsZindexDifference) {
         flags.containsZindexDifference =
-          delta.deleted.fractionalIndex !== delta.inserted.fractionalIndex;
+          delta.deleted.index !== delta.inserted.index;
       }
 
       const updatedElement = newElementWith(element, mergedPartial);
