@@ -664,10 +664,6 @@ class App extends React.Component<AppProps, AppState> {
         addFiles: this.addFiles,
         resetScene: this.resetScene,
         getSceneElementsIncludingDeleted: this.getSceneElementsIncludingDeleted,
-        store: {
-          clear: this.store.clear,
-          listen: this.store.listen,
-        },
         history: {
           clear: this.resetHistory,
         },
@@ -2422,8 +2418,8 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
-    this.store.listen((...args) => {
-      this.history.record(...args);
+    this.store.onStoreIncrementEmitter.on((increment) => {
+      this.history.record(increment.elementsChange, increment.appStateChange);
     });
 
     this.scene.addCallback(this.onSceneUpdated);
@@ -2482,7 +2478,7 @@ class App extends React.Component<AppProps, AppState> {
     this.laserTrails.stop();
     this.eraserTrail.stop();
     this.onChangeEmitter.clear();
-    this.store.destroy();
+    this.store.onStoreIncrementEmitter.clear();
     ShapeCache.destroy();
     SnapCache.destroy();
     clearTimeout(touchTimeout);

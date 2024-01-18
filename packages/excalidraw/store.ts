@@ -29,14 +29,8 @@ const getObservedAppState = (appState: AppState): ObservedAppState => {
  * @experimental this interface is experimental and subject to change.
  */
 export interface IStore {
-  /**
-   * Get the store snapshot
-   */
+  onStoreIncrementEmitter: Emitter<[StoreIncrementEvent]>;
   get snapshot(): Snapshot;
-
-  /**
-   * Update store snapshot
-   */
   set snapshot(snapshot: Snapshot);
 
   /**
@@ -57,27 +51,9 @@ export interface IStore {
   capture(elements: Map<string, ExcalidrawElement>, appState: AppState): void;
 
   /**
-   * Listens to the store increments, emitted by the capture method.
-   * Suitable for consuming store increments by various system components, such as History, Collab, Storage and etc.
-   *
-   * @listens StoreIncrementEvent
-   */
-  listen(
-    callback: (
-      elementsChange: ElementsChange,
-      appStateChange: AppStateChange,
-    ) => void,
-  ): ReturnType<Emitter<StoreIncrementEvent>["on"]>;
-
-  /**
    * Clears the store instance.
    */
   clear(): void;
-
-  /**
-   * Clears the store instance and destroys the emitter.
-   */
-  destroy(): void;
 
   /**
    * Filters out yet uncomitted local elements, which are part of in progress async actions, based on what we have in snapshot.
@@ -94,13 +70,17 @@ export interface IStore {
 /**
  * Represent an increment to the Store.
  */
-type StoreIncrementEvent = [
-  elementsChange: ElementsChange,
-  appStateChange: AppStateChange,
-];
+class StoreIncrementEvent {
+  constructor(
+    public readonly elementsChange: ElementsChange,
+    public readonly appStateChange: AppStateChange,
+  ) {}
+}
 
 export class Store implements IStore {
-  private readonly onStoreIncrementEmitter = new Emitter<StoreIncrementEvent>();
+  public readonly onStoreIncrementEmitter = new Emitter<
+    [StoreIncrementEvent]
+  >();
 
   private calculatingIncrement: boolean = false;
   private updatingSnapshot: boolean = false;
@@ -157,8 +137,7 @@ export class Store implements IStore {
           if (!elementsChange.isEmpty() || !appStateChange.isEmpty()) {
             // Notify listeners with the increment
             this.onStoreIncrementEmitter.trigger(
-              elementsChange,
-              appStateChange,
+              new StoreIncrementEvent(elementsChange, appStateChange),
             );
           }
         }
@@ -171,15 +150,6 @@ export class Store implements IStore {
       this.updatingSnapshot = false;
       this.calculatingIncrement = false;
     }
-  };
-
-  public listen = (
-    callback: (
-      elementsChange: ElementsChange,
-      appStateChange: AppStateChange,
-    ) => void,
-  ) => {
-    return this.onStoreIncrementEmitter.on(callback);
   };
 
   public ignoreUncomittedElements = (
@@ -215,11 +185,6 @@ export class Store implements IStore {
 
   public clear = (): void => {
     this._snapshot = Snapshot.empty();
-  };
-
-  public destroy = (): void => {
-    this.clear();
-    this.onStoreIncrementEmitter.clear();
   };
 }
 
